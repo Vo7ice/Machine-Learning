@@ -4,7 +4,7 @@
 # 导入科学计算包numpy和运算符模块operator
 from numpy import *
 import operator
-
+import matplotlib
 
 def create_data_set():
     """
@@ -33,14 +33,14 @@ def classify_0(inX, data_set, labels, k):
     kNN.classify0([0,0], group, labels, 3)
     """
     # 1. 距离计算
-    data_set_size = data_set.shape[0]
+    data_set_size = data_set.shape[0]  # shape使用方法参考readme
+    print('data_set_size:', data_set_size)
     # tile生成和训练样本对应的矩阵，并与训练样本求差
     """
     tile: 列-3表示复制的行数， 行-1／2表示对inx的重复的次数
-
+    inx = [1, 2, 3]
     In [8]: tile(inx, (3, 1))
-    Out[8]:
-    array([[1, 2, 3],
+    Out[8]: array([[1, 2, 3],
         [1, 2, 3],
         [1, 2, 3]])
 
@@ -50,7 +50,8 @@ def classify_0(inX, data_set, labels, k):
         [1, 2, 3, 1, 2, 3],
         [1, 2, 3, 1, 2, 3]])
     """
-    diff_mat = tile(inX, (data_set_size, 1)) - data_set
+    print('tile:', tile(inX, (data_set_size, 1)))
+    diff_mat = tile(inX, (data_set_size, 1)) - data_set  # 每一行相减
     """
     欧氏距离： 点到点之间的距离
        第一行： 同一个点 到 data_set的第一个点的距离。
@@ -62,7 +63,7 @@ def classify_0(inX, data_set, labels, k):
     (A1-A2)^2+(B1-B2)^2+(c1-c2)^2
     """
     # 取平方
-    sq_diff_mat = diff_mat ** 2
+    sq_diff_mat = diff_mat ** 2  # 矩阵乘方
     # 将矩阵的每一行相加
     sq_distances = sq_diff_mat.sum(axis=1)
     # 开方
@@ -76,7 +77,7 @@ def classify_0(inX, data_set, labels, k):
     print("souted_dist_indicies:", sorted_dist_indicies)
 
     # 2. 选择距离最小的k个点
-    class_count = {}
+    class_count = {}  # 字典作为保存的容器 label为key count为value
     for i in range(k):
         # 找到该样本的类型
         vote_label = labels[sorted_dist_indicies[i]]
@@ -100,17 +101,43 @@ def classify_0(inX, data_set, labels, k):
     return sorted_class_count[0][0]
 
 
+def test1():
+    group, labels = create_data_set()
+    classify_0([0, 0], group, labels, 3)
+
+
+# ------------------------------------------------------------------
+
 def file2matrix(filename):
+    """
+    导入训练数据
+    :param filename: 数据文件路径
+    :return: 数据矩阵return_mat和对应的类别class_label_vector
+    """
     with open(filename) as fr:
         array_lines = fr.readlines()
+        # 获得文件中的数据行的行数
         num_lines = len(array_lines)
-        return_mat = zeros((num_lines, 3))
-        class_label_vector = []
+        # 生成对应的空矩阵
+        # zeros 函数说明 a new array of given shape and type, filled with zeros.
+        # 例如: zeros(2,3)就是生成一个2*3的矩阵,各个位置全是0
+        return_mat = zeros((num_lines, 3))  # prepare matrix to return
+        class_label_vector = []  # prepare labels return
         index = 0
         for line in array_lines:
+            # 返回移除字符串头尾指定的字符生成新的字符串,过滤回车
             line = line.strip()
+            # 以制表符切割字符串
             list_from_line = line.split('\t')
+            # 每列的属性数据
             return_mat[index, :] = list_from_line[0:3]
+            # 每列的类别数据 就是label标签数据
             class_label_vector.append(int(list_from_line[-1]))
             index += 1
+        # 返回数据矩阵return_mat和对应的类别的class_label_vector
         return return_mat, class_label_vector
+
+
+if __name__ == '__main__':
+    # test1()
+    print(file2matrix('datingTestSet.txt'))
