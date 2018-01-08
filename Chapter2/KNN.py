@@ -4,7 +4,8 @@
 # 导入科学计算包numpy和运算符模块operator
 from numpy import *
 import operator
-import matplotlib
+import matplotlib.pyplot as plt
+
 
 def create_data_set():
     """
@@ -138,6 +139,80 @@ def file2matrix(filename):
         return return_mat, class_label_vector
 
 
+def auto_norm(data_set):
+    """
+    归一化特征值, 消除属性之间量级不同导致的影响
+    :param data_set: 数据集
+    :return:
+    归一化后的数据集normalDataSet, ranges和minVals即最小值与范围
+
+    归一化公式:
+        Y = (X - Xmin)/ (Xmax - Xmin)
+        其中的min和max
+        分别为数据集中的最小特征值和最大特征值.
+        该函数可以自动将数字特征值转化为0到1的区间
+    """
+    # 计算每种属性的最大值,最小值,范围
+    min_vals = data_set.min(0)
+    max_vals = data_set.max(0)
+    # 极差
+    ranges = max_vals - min_vals
+    norm_data_set = zeros(shape(data_set))
+    m = data_set.shape[0]
+    # 生成与最小值之差组成的矩阵
+    norm_data_set = data_set - tile(min_vals, (m, 1))
+    # 将最小值之差除以范围组成矩阵
+    norm_data_set = norm_data_set / tile(ranges, (m, 1))  # element wise divide
+    return norm_data_set, ranges, min_vals
+
+
+def dating_class_test():
+    """
+    对约会网站的测试方法
+    :return: 错误数
+    """
+    # 设置测试数据的一个比例(训练数据集比例 = 1- ho_ratio)
+    ho_ratio = 0.1  # 测试范围, 一部分测试一部分作为样本
+    # 从文件中加载数据
+    dating_mat, dating_labels = file2matrix("datingTestSet.txt")
+    # 归一化数据
+    norm_mat, ranges, min_vals = auto_norm(dating_mat)
+    # m 表示数据的行数, 即矩阵的第一维
+    m = norm_mat.shape[0]
+    # 设置测试的样本数量, num_test_vecs:m表示训练向本的数量
+    num_test_vecs = int(m * ho_ratio)
+    print('num_test_vecs:', num_test_vecs)
+    error_count = 0.0
+    for i in range(num_test_vecs):
+        # 对数据测试
+        result = classify_0(norm_mat[i, :], norm_mat[num_test_vecs:m, :], dating_labels[num_test_vecs:m], 3)
+        print("the classifier came back with: %d, the real answer is: %d" % (result, dating_labels[i]))
+        if result != dating_labels[i] : error_count += 1.0
+    print("the total error rate is: %f" % (error_count / float(num_test_vecs)))
+    print("error:", error_count)
+
+
+def test2():
+    dating_mat, dating_label = file2matrix('datingTestSet.txt')
+
+    norm_set, ranges, min_vals = auto_norm(dating_mat)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.scatter(norm_set[:, 0], norm_set[:, 1],
+               15.0 * array(dating_label), 15.0 * array(dating_label))
+    plt.show()
+
+
 if __name__ == '__main__':
     # test1()
-    print(file2matrix('datingTestSet.txt'))
+    # print(file2matrix('datingTestSet.txt'))
+    # dating_mat, dating_label = file2matrix('datingTestSet.txt')
+    # print('mat:', dating_mat)
+    # print('label:', dating_label[0:20])
+    # norm_set, ranges, min_val = auto_norm(dating_mat)
+    # print('normal_set:', norm_set)
+    # print('ranges:', ranges)
+    # print("min_vals:", min_val)
+    # test2()
+    dating_class_test()
+    pass
