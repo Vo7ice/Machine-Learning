@@ -187,9 +187,21 @@ def dating_class_test():
         # 对数据测试
         result = classify_0(norm_mat[i, :], norm_mat[num_test_vecs:m, :], dating_labels[num_test_vecs:m], 3)
         print("the classifier came back with: %d, the real answer is: %d" % (result, dating_labels[i]))
-        if result != dating_labels[i] : error_count += 1.0
+        if result != dating_labels[i]: error_count += 1.0
     print("the total error rate is: %f" % (error_count / float(num_test_vecs)))
     print("error:", error_count)
+
+
+def classify_Personalize():
+    result_list = ['not at all', 'in small doses', 'in large doses']
+    percent = float(input("percentage of time spent playing video games?"))
+    ff_miles = float(input("frequent fliter miles earned per year?"))
+    ice_cream = float(input("liters of ice cream consumed per year?"))
+    datingDataMat, datingLabels = file2matrix('datingTestSet.txt')
+    norMat, ranges, minVals = auto_norm(datingDataMat)
+    inArr = array([ff_miles, percent, ice_cream])
+    classifierResult = classify_0((inArr - minVals) / ranges, norMat, datingLabels, 3)
+    print("You will probably like this person: ", result_list[classifierResult - 1])
 
 
 def test2():
@@ -214,5 +226,6 @@ if __name__ == '__main__':
     # print('ranges:', ranges)
     # print("min_vals:", min_val)
     # test2()
-    dating_class_test()
+    # dating_class_test()
+    classify_Personalize()
     pass
