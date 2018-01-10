@@ -2,6 +2,8 @@
 # encoding: utf-8
 
 # 导入科学计算包numpy和运算符模块operator
+from os import listdir
+
 from numpy import *
 import operator
 import matplotlib.pyplot as plt
@@ -35,7 +37,7 @@ def classify_0(inX, data_set, labels, k):
     """
     # 1. 距离计算
     data_set_size = data_set.shape[0]  # shape使用方法参考readme
-    print('data_set_size:', data_set_size)
+    # print('data_set_size:', data_set_size)
     # tile生成和训练样本对应的矩阵，并与训练样本求差
     """
     tile: 列-3表示复制的行数， 行-1／2表示对inx的重复的次数
@@ -51,7 +53,7 @@ def classify_0(inX, data_set, labels, k):
         [1, 2, 3, 1, 2, 3],
         [1, 2, 3, 1, 2, 3]])
     """
-    print('tile:', tile(inX, (data_set_size, 1)))
+    # print('tile:', tile(inX, (data_set_size, 1)))
     diff_mat = tile(inX, (data_set_size, 1)) - data_set  # 每一行相减
     """
     欧氏距离： 点到点之间的距离
@@ -73,9 +75,9 @@ def classify_0(inX, data_set, labels, k):
     # argsort() 是将x中的元素从小到大排列，提取其对应的index（索引），然后输出到y。
     # 例如：y=array([3,0,2,1,4,5]) 则，x[3]=-1最小，所以y[0]=3,x[5]=9最大，所以y[5]=5。
     # print 'distances=', distances
-    print('distances:', distances)
+    # print('distances:', distances)
     sorted_dist_indicies = distances.argsort()
-    print("souted_dist_indicies:", sorted_dist_indicies)
+    # print("souted_dist_indicies:", sorted_dist_indicies)
 
     # 2. 选择距离最小的k个点
     class_count = {}  # 字典作为保存的容器 label为key count为value
@@ -88,7 +90,7 @@ def classify_0(inX, data_set, labels, k):
         # l = {5:2,3:4}
         # print l.get(3,0)返回的值是4；
         # Print l.get（1,0）返回值是0；
-        print('vote_label:', vote_label)
+        # print('vote_label:', vote_label)
         class_count[vote_label] = class_count.get(vote_label, 0) + 1
     # 3. 排序并返回出现最多的那个类型
     # 字典的 items() 方法，以列表返回可遍历的(键，值)元组数组。
@@ -97,7 +99,7 @@ def classify_0(inX, data_set, labels, k):
     # 例如：a=[('b',2),('a',1),('c',0)]  b=sorted(a,key=operator.itemgetter(1)) >>>b=[('c',0),('a',1),('b',2)] 可以看到排序是按照后边的0,1,2进行排序的，而不是a,b,c
     # b=sorted(a,key=operator.itemgetter(0)) >>>b=[('a',1),('b',2),('c',0)] 这次比较的是前边的a,b,c而不是0,1,2
     # b=sorted(a,key=opertator.itemgetter(1,0)) >>>b=[('c',0),('a',1),('b',2)] 这个是先比较第2个元素，然后对第一个元素进行排序，形成多级排序。
-    print('class_count:', class_count)
+    # print('class_count:', class_count)
     sorted_class_count = sorted(class_count.items(), key=operator.itemgetter(1), reverse=True)
     return sorted_class_count[0][0]
 
@@ -215,6 +217,54 @@ def test2():
     plt.show()
 
 
+def img2vectior(filename):
+    """
+    将图像数据转换为向量
+    :param filename: 图片文件 因为我们的输入数据的图片格式是32 * 32
+    :return: 一维矩阵
+    该函数将图像转换为向量:该函数创建1 * 1024的NumPy数据, 然后打开给定的文件
+
+    循环独处文件的前32行, 并将每行的头32个字符值存储在NumPy数组中,最后返回数据.
+    """
+    return_vect = zeros((1, 1024))
+    with open(filename) as fr:
+        for i in range(32):
+            line = fr.readline()
+            for j in range(32):
+                return_vect[0, 32 * i + j] = int(line[j])
+    return return_vect
+
+
+def handwriting_class_test():
+    # 1.导入数据
+    hw_labels = []
+    training_file_list = listdir('trainingDigits')  # load the training set
+    m = len(training_file_list)
+    training_mat = zeros((m, 1024))
+    # hw_labels 存储0~9对应的index位置,training_mat 存放的每个位置对应的图片向量
+    for i in range(m):
+        file_name = training_file_list[i]
+        file_str = file_name.split('.')[0]
+        class_num_str = int(file_str.split('_')[0])
+        hw_labels.append(class_num_str)
+        # 将 32 * 32的矩阵->1 * 1024的矩阵
+        training_mat[i, :] = img2vectior('trainingDigits/%s' % file_name)
+    # 2. 导入测试数据
+    test_file_list = listdir('testDigits')  # iterate through the test set
+    error_count = 0.0
+    test = len(test_file_list)
+    for i in range(test):
+        file_name = test_file_list[i]
+        file_str = file_name.split('.')[0]
+        class_num_str = int(file_str.split('_')[0])
+        vector_under_test = img2vectior('testDigits/%s' % file_name)
+        classifier_result = classify_0(vector_under_test, training_mat, hw_labels, 3)
+        print("the classifier came back with:%d, the real answer is : %d" % (classifier_result, class_num_str))
+        if (classifier_result != class_num_str): error_count += 1.0
+    print("\n the total number of errors is: %d" % error_count)
+    print("\n the total error rate is : %f" % (error_count / float(test)))
+
+
 if __name__ == '__main__':
     # test1()
     # print(file2matrix('datingTestSet.txt'))
@@ -227,5 +277,9 @@ if __name__ == '__main__':
     # print("min_vals:", min_val)
     # test2()
     # dating_class_test()
-    classify_Personalize()
+    # classify_Personalize()
+    # test_vect = img2vectior('testDigits/0_13.txt')
+    # print('vect:', test_vect[0, 0:31])
+    # print("32 after", test_vect[0, 32:63])
+    handwriting_class_test()
     pass
