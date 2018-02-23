@@ -275,11 +275,11 @@ if __name__ == '__main__':
     # print('normal_set:', norm_set)
     # print('ranges:', ranges)
     # print("min_vals:", min_val)
-    # test2()
+    test2()
     # dating_class_test()
     # classify_Personalize()
     # test_vect = img2vectior('testDigits/0_13.txt')
     # print('vect:', test_vect[0, 0:31])
     # print("32 after", test_vect[0, 32:63])
-    handwriting_class_test()
+    # handwriting_class_test()
     pass
